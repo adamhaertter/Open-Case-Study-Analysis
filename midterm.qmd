@@ -4,23 +4,35 @@ author: "Adam Haertter & Brennan Mulligan"
 format: pdf
 ---
 
-## Quarto
+## Open Case Study
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+For our open case study, we have chosen to analyze the (Mental Health of American Youth)\[https://www.opencasestudies.org/ocs-bp-youth-mental-health/\], chosen from the provided list of (Open Case Studies)\[https://www.opencasestudies.org/#searchtab\].
 
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
-```
-
-You can add options to executable code like this
-
-```{r}
+```{r lib}
+#| message: false 
 #| echo: false
-2 * 2
+
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+## Following the Case Study
+
+```{r}
+# The Case Study
+
+```
+
+## Suggested HW Questions
+
+```{r}
+# Suggested HW Questions
+
+```
+
+## Our Own Question
+
+For our own question, we would like to examine **\[Write about this more\]**
+
+```{r}
+# Our Own Question
+
+```
