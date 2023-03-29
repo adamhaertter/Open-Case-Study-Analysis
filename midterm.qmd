@@ -40,13 +40,73 @@ For the midterm, you are going to you are going to choose a case study that you 
 
 For our open case study, we have chosen to analyze the [Mental Health of American Youth](https://www.opencasestudies.org/ocs-bp-youth-mental-health/), chosen from the provided list of [Open Case Studies](https://www.opencasestudies.org/#searchtab).
 
+
+The main questions the case study intends to follow are:
+1. How have depression rates in American youth changed since 2004, according to the NSDUH data? How have rates differed between different youth subgroups (age, gender, ethnicity)?
+2. Do mental health services appear to be reaching more youths? Again, how have rates differed between different youth subgroups (age, gender, ethnicity)?
+
 ```{r lib}
 #| message: false 
 #| echo: false
 
+library(here)
+library(rvest)
+library(dplyr)
+library(magrittr)
+library(stringr)
+library(tidyr)
+library(tibble)
+library(purrr)
+library(ggplot2)
+library(directlabels)
+library(scales)
+library(forcats)
+library(ggthemes)
+library(rstatix)
+library(cowplot)
+library(OCSdata)
+
 ```
 
 ## Following the Case Study
+
+### Data Import
+
+Following the case study, data should be obtained by scraping the web. Specifically, we need to scrape the [NSDUH survey](https://www.samhsa.gov/data/sites/default/files/cbhsq-reports/NSDUHDetailedTabs2018R2/NSDUHDetTabsSect11pe2018.htm) site.
+
+```{r}
+# Data Import
+table11.1a <- read_html("https://www.samhsa.gov/data/sites/default/files/cbhsq-reports/NSDUHDetailedTabs2018R2/NSDUHDetTabsSect11pe2018.htm") %>%
+  html_nodes(xpath = "/html/body/div[4]/div[1]/table") %>%
+  html_table() %>%
+  .[[1]]
+
+# Defining a scraper function
+scraper <- function(XPATH) {
+  NSDUH_url <- "https://www.opencasestudies.org/ocs-bp-youth-mental-health/data/raw/samhsa.gov_2020_tables.htm"
+  table <- NSDUH_url %>%
+    read_html() %>%
+    html_nodes(xpath = XPATH) %>%
+    html_table()
+  output <- table[[1]]
+  output
+}
+
+# Scraping the rest of the tables
+table11.1b <- scraper(XPATH = "/html/body/div[4]/div[2]/table")
+table11.2a <- scraper(XPATH = '/html/body/div[4]/div[3]/table')
+table11.2b <- scraper(XPATH = '/html/body/div[4]/div[4]/table')
+table11.3a <- scraper(XPATH = '/html/body/div[4]/div[5]/table')
+table11.3b <- scraper(XPATH = '/html/body/div[4]/div[6]/table')
+table11.4a <- scraper(XPATH = '/html/body/div[4]/div[7]/table')
+table11.4b <- scraper(XPATH = '/html/body/div[4]/div[8]/table')
+
+# Saving the data locally
+save(table11.1a, table11.1b, table11.2a, table11.2b, 
+     table11.3a, table11.3b, table11.4a, table11.4b, 
+     file = here("data", "imported", "imported_data.rda"))
+
+```
 
 ### Data Wrangling
 
