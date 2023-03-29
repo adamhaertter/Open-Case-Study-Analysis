@@ -112,6 +112,163 @@ save(table11.1a, table11.1b, table11.2a, table11.2b,
 
 ```{r}
 # Data Wrangling
+load(file = here::here("data", "imported", "imported_data.rda"))
+
+# Separating the legend
+legend <- table11.1a %>%
+  as_tibble() %>%
+  select(`2004`) %>%
+  tail(n = 1)
+
+table11.1a %<>%
+  as_tibble() %>%
+  slice(1:(n()-1))
+
+#slice_head(table11.1a, n = (length(pull(table11.1a, `2002`))))
+#pull(legend, `2004`)
+
+# Unifying the NA values based on the legend
+table11.1a %<>%
+   mutate_all(~na_if(., "nc")) %>%
+  mutate_all(~na_if(., "--")) %>%
+  mutate_all(~na_if(., "")) %>%
+  mutate_all(~na_if(., "*"))
+
+#head(table11.1a)
+#colnames(table11.1a)
+
+# Cleaning up the row names
+table11.1a %<>%
+  rename(MHS_setting = `Setting Where Mental Health ServiceWas Received`)
+
+#head(table11.1a)
+#table11.1a %>% pull(MHS_setting)
+
+table11.1a %<>%
+  mutate(MHS_setting = 
+           str_remove_all(string = MHS_setting,
+                          pattern = "[:digit:]|\r\n|[:punct:]|")) %>%
+  mutate(MHS_setting = 
+           str_replace_all(string = MHS_setting,
+                           pattern = "[:blank:]{1,}",
+                           replacement = " "))
+
+# Cleaning up numerical values
+table11.1a %<>%
+  mutate(across(.cols = -MHS_setting,
+                str_remove_all,
+                "a|,")) %>%
+  mutate(across(.cols = -MHS_setting,
+                as.numeric))
+
+# Type, subtype, and short labels
+table11.1a %<>%
+  mutate(type = c(rep("Specialty", 9), 
+                  rep("Nonspecialty", 11))) %>%
+  mutate(subtype = c("Specialty_total", 
+                     rep("Outpatient", 5), 
+                     rep("Inpatient", 3), 
+                     "Nonspecialty_total", 
+                     rep("Education", 3), 
+                     rep("General_medicine", 2),
+                     rep("Juvenile_Justice", 2), 
+                     rep("Child_Welfare", 2), 
+                     "combination")) %>%
+  mutate(short_label = c("Specialty total", 
+                         "Outpatient total", 
+                         "Therapist", 
+                         "Clinic", 
+                         "Day program",
+                         "In-home Therapist", 
+                         "Inpatient total", 
+                         "Hospital", 
+                         "Residential Center",
+                         "Nonspecialty total", 
+                         "School total", 
+                         "School Therapist", 
+                         "School Program", 
+                         "General Medicine",
+                         "Family Dr",
+                         "Justice System",
+                         "Justice System",
+                         "Welfare", 
+                         "Fostercare", 
+                         "Specialty Combination"))
+
+# Filtering out empty rows
+table11.1a %<>%
+  filter(MHS_setting != "General_Medicine") %>%
+  filter(MHS_setting != "Juvenile_Justice") %>%
+  filter(MHS_setting != "Child_Welfare")
+  
+# Pivoting data
+table11.1a %<>%
+  tidyr::pivot_longer(cols = contains("20"), 
+                      names_to = "Year",
+                      values_to = "Number") %>%
+  mutate(Year = as.numeric(Year))
+
+# Defining a similar summary function for 
+# This just requires retracing the same steps as above
+data_prep_settings <- function(TABLE, new_col, pivot_col){
+  dplyr::as_tibble(TABLE) %>%
+    slice(1:(n() - 1)) %>%
+# make "nc" values NA etc. CHANGE
+    na_if("nc") %>%
+    na_if("--") %>%
+    na_if("") %>%
+    na_if("*") %>% 
+# rename the first column (names(.)[1]) to be what was specified with the new_col argument
+    rename({{new_col}} := names(.)[1]) %>%
+# remove the numbers and punctuation marks and carriage returns (\r) and new lines (\n) from the first column
+    mutate({{new_col}} := 
+        str_remove_all(string = pull(., {{new_col}}), 
+                        pattern = "[:digit:]|\r\n|[:punct:]|")) %>%
+# replace white spaces with a single space
+    mutate({{new_col}} := 
+        str_replace_all(string =pull(., {{new_col}}),
+                         pattern = "[:blank:]{1,}", 
+                         replacement = " ")) %>%
+# remove "a" and , from the values for the columns that are not the first column (called new_col)
+    mutate(dplyr::across(.cols = -{{new_col}},
+                       stringr::str_remove_all, "a|,")) %>%
+# make these columns numeric  (all the columns but the first column)
+    mutate(across(-{{new_col}}, as.numeric)) %>%
+# make a new variable called type with 9 values that are Specialty followed by 11 values of Nonspecialty
+    mutate(type = c(rep("Specialty", 9), rep("Nonspecialty", 11))) %>%
+# make a new variable called subtype with the following values repeated various times
+    mutate(subtype = c("Specialty_total",
+                       rep("Outpatient", 5),
+                       rep("Inpatient", 3),
+                       "Nonspecialty_total",
+                       rep("Education", 3),
+                       rep("General_medicine", 2),
+                       rep("Juvenile_Justice", 2),
+                       rep("Child_Welfare", 2),
+                       "combination")) %>% 
+# make a new variable called short_label to use as labels for plots for the data
+    mutate(short_label = c("Specialty total", "Outpatient total",  
+                           "Therapist", "Clinic", "Day program", 
+                           "In-home Therapist", "Inpatient total",
+                           "Hospital", "Residential Center",
+                           "Nonspecialty total", "School total", 
+                           "School Therapist", "School Program", 
+                           "General Medicine", "Family Dr", 
+                           "Justice System", "Justice System", 
+                           "Welfare", "Fostercare", 
+                           "Specialty Combination")) %>%
+# remove rows were all the values are NA - 
+# the number of `NA` values for a row should be less than the number of columns that could have `NA` values
+  filter(rowSums(is.na(select(., is.numeric))) <
+           length(select(., is.numeric))) %>%
+# make the table into long format so that the year columns are collapsed together 
+# the new value column is called what was specified with the "pivot_col" argument
+  pivot_longer(cols = contains("20"),
+               names_to = "Year", 
+               values_to = pivot_col)%>%
+# make the new "Year" variable numeric
+  mutate(Year = as.numeric(Year))
+}
 
 ```
 
