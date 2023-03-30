@@ -630,7 +630,7 @@ chi_squared_11.2a %<>%
               values_from = Number)
 ```
 
-Continuing on following the case study, we need to continue formatting data for the chi_squared test:
+Continuing on following the case study, we need to continue formatting data for the chi-squared test and run the first chi-squared test.
 
 ```{r}
 # Continuing data analysis
@@ -638,6 +638,126 @@ chi_squared_11.2a %<>%
   tibble::column_to_rownames("Demographic")
 
 chi_squared_11.2a
+
+# Run the Chi-Squared test
+chisq.test(chi_squared_11.2a)
+```
+
+#### Question Opportunity:
+Using what you learned about the Chi-squared test, describe the results in reference to the null hypothesis.
+
+__Answer__: Since the p-value is less than $2.2^{-16}$, we know that the p-value is extremely small. Without having out $\alpha$ significance level explicitly defined, we can assume that $\alpha = 0.05$. Our p-value is much smaller than $\alpha$, so we can reject the null-hypothesis in this case. If $H_0$: The variables are independent, then therefore we have evidence to reject this hypothesis, and evidence suggests that the variables are not, in fact, independent.
+
+Continuing with the data analysis, we need to set up a test to describe the size of the association present.
+
+```{r}
+# Set up prop_test
+prop_test(chi_squared_11.2a, 
+          detailed = TRUE, 
+          correct = TRUE) %>%
+  glimpse()
+
+# Run transposed table through prop_test
+t(chi_squared_11.2a) %>%
+  prop_test(detailed = TRUE, correct = TRUE) %>%
+  glimpse()
+
+# Cross-reference with similar plot for counts
+MDE_age_gender_counts <-
+  counts %>%
+  filter(data_type == "Major_Depressive_Episode", 
+         subgroup != "Race/Ethnicity", 
+         Demographic != "TOTAL") %>%
+  ggplot(aes(x = Year, y = Number, group = Demographic)) +
+    geom_rect(xmin = 2011, xmax = Inf,  
+              ymin = -Inf, ymax = Inf,  
+              fill = "light gray") +
+    geom_line(aes(color = Demographic), size =1) +
+    scale_x_continuous(breaks = seq(2004, 2018, by=1),
+                       labels = seq(2004, 2018, by=1),
+                       limits = c(2004, 2018)) +
+    labs(title = "Major Depressive Episode\namong Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+    facet_wrap(~ subgroup) +
+    ocs_theme()
+
+MDE_age_gender_counts <- direct.label(
+  MDE_age_gender_counts, 
+  list(dl.trans(y = y +0.38, x = x -0.2), 
+       "far.from.others.borders", 
+       cex = .8,
+       fontface = "bold",
+       dl.move("Age: 14-15", x = 2008, y =10))
+  ) + 
+  scale_color_manual(values = c(age_col_light, 
+                                age_col, 
+                                age_col_dark, 
+                                Female_col, 
+                                Male_col))
+
+MDE_age_gender_counts 
+
+# Analysis of Severe MDE
+chi_squared_11.3a <- counts %>%
+  filter(data_type == "Severe_Major_Depressive_Episode", 
+         Year %in% c(2006, 2018), 
+         Demographic %in% c("Male","Female")) %>%
+  mutate(Number = Number * 1000) %>%
+  select(-data_type, -subgroup) %>%
+  pivot_wider(names_from = Year,
+              names_prefix = "Year", 
+              values_from = Number) %>%
+  column_to_rownames("Demographic")
+
+chi_squared_11.3a
+
+# Running Chi-Squared test for 11.3a
+chisq.test(chi_squared_11.3a)
+
+t(chi_squared_11.3a) %>% 
+  prop_test( detailed = TRUE, correct = TRUE) %>%
+  glimpse()
+
+```
+
+#### Question Opportunity:
+
+Try performing the same wrangling as we did for the percentage of each demographic that reported having a major depressive episode for the data about treatment.
+
+```{r}
+# Setting up data for 11.4a
+
+chi_squared_11.4a <- counts %>%
+  filter(data_type == "Treatment", 
+         Year %in% c(2004, 2018), 
+         Demographic %in% c("Male","Female")) %>%
+  mutate(Number = Number * 1000) %>%
+  select(-data_type, -subgroup) %>%
+  pivot_wider(names_from = Year,
+              names_prefix = "Year", 
+              values_from = Number) %>%
+  column_to_rownames("Demographic")
+
+chi_squared_11.4a
+
+```
+
+After this, we need to run the chi-squared test on this data for 11.4a.
+
+```{r}
+# Chi-Squared for 11.4a
+chisq.test(chi_squared_11.4a)
+
+t(chi_squared_11.4a) %>% 
+  prop_test(detailed = TRUE, correct = TRUE) %>%
+  glimpse()
+
+
+# While not part of the case study, we wanted to save this new graph, too.
+save(MDE_age_gender_counts, file =here::here("plots", "MDE_age_gender_counts.rda"))
+png(here::here("plots", "MDE_age_gender_counts.png"))
+MDE_age_gender_counts
+while (!is.null(dev.list()))  dev.off()
 ```
 
 ### Summary
