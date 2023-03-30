@@ -952,7 +952,7 @@ race_outcomes <- percents %>%
 
 ```{r}
 # Data Analysis
-load(file = here::here("data", "wrangled", "wrangled_data.rda"))
+load(file = here("data", "wrangled", "wrangled_data.rda"))
 
 # Set up chi squared data
 chi_squared_11.2a <- counts %>%
@@ -1307,9 +1307,111 @@ while (!is.null(dev.list()))  dev.off()
 
 ## Homework Questions
 
-```{r}
-# Suggested HW Questions
+> Ask students to scrape Tables 11.5A and 11.5B from the website, which contain data about the receipt of treatment among youths who reported having a severe episode. Ask students to create plots and perform Chi-square tests to evaluate how groups compare over time.
 
+We believe the best way to go about these Homework Questions is to run Tables 11.5A and 11.5B through the previous steps where applicable. To do this, we have split this into subsections for each of the previous stages.
+
+### Data Import
+
+```{r}
+# Scraper
+table11.5a <- scraper(XPATH = '/html/body/div[4]/div[9]/table')
+table11.5b <- scraper(XPATH = '/html/body/div[4]/div[10]/table')
+
+# Saving the data locally
+save(table11.5a, table11.5b,
+     file = here("data", "imported", "imported_data.rda"))
+```
+
+### Data Wrangling
+```{r}
+# Apply demographic transformations
+table11.5a <- data_dem_settings(TABLE = table11.5a)
+table11.5b <- data_dem_settings(TABLE = table11.5b)
+table11.5a %<>% mutate(data_type = "Treatment_for_Severe_Major_Depressive_Episode")
+table11.5b %<>% mutate(data_type = "Treatment_for_Severe_Major_Depressive Episode")
+
+tables_to_check_hw <- list(table11.5a, table11.5b)
+tables_to_check_hw %>% map(data_dem_check)
+
+# Recreate counts and percents with new tables
+counts <- bind_rows(table11.2a, table11.3a, table11.4a, table11.5a)
+percents <- bind_rows(table11.2b, table11.3b, table11.4b, table11.5b)
+
+# Altering counts and percents
+## This is copied from above, as the same transformations need to apply
+
+counts %>% distinct(data_type)
+percents %>% distinct(data_type)
+
+counts %<>% pivot_longer(cols = contains("20"), 
+                         names_to = "Year", 
+                         values_to = "Number") %>%
+            mutate(Year = as.numeric(Year))
+
+percents %<>% pivot_longer(cols = contains("20"), 
+                           names_to = "Year", 
+                           values_to = "Percent") %>%
+              mutate(Year = as.numeric(Year))
+
+glimpse(counts)
+glimpse(percents)
+
+percents %<>% mutate(Demographic = str_replace(string = Demographic, 
+                                             pattern = "AIAN",
+                                         replacement = "American Indian and Alaska Native"))
+
+percents %<>% mutate(Demographic =  str_replace(string = Demographic,
+                                             pattern = "NHOPI",
+                                         replacement = "Native Hawaiian or Other Pacific Islander"))
+
+counts %<>% mutate(Demographic = str_replace(string = Demographic, 
+                                             pattern = "AIAN",
+                                         replacement = "American Indian and Alaska Native"))
+
+counts %<>% mutate(Demographic =  str_replace(string = Demographic, 
+                                             pattern = "NHOPI",
+                                         replacement = "Native Hawaiian or Other Pacific Islander"))
+
+# Saving data
+save(percents, counts, table11.1a, table11.1b, 
+     file = here("data", "wrangled", "wrangled_data.rda"))
+write_csv(percents, path = here("data", "wrangled", "percents.csv"))
+write_csv(counts, path = here("data", "wrangled", "counts.csv"))
+```
+
+### Data Visualization
+
+```{r}
+# Plotting
+
+#TODO: Finish the Plotting for this
+```
+
+### Data Analysis
+
+```{r}
+# Setting up the data for the chi-squared test
+chi_squared_11.5a <- counts %>%
+  filter(data_type == "Treatment_for_Severe_Major_Depressive_Episode",
+         # This is 2006 because that is the lowest year in 11.5
+         Year %in% c(2006, 2018), 
+         Demographic %in% c("Male","Female")) %>%
+  mutate(Number = Number * 1000) %>%
+  select(-data_type, -subgroup) %>%
+  pivot_wider(names_from = Year,
+              names_prefix = "Year", 
+              values_from = Number) %>%
+  column_to_rownames("Demographic")
+
+chi_squared_11.5a
+
+# Running chi-squared test for 11.3a
+chisq.test(chi_squared_11.5a)
+
+t(chi_squared_11.5a) %>% 
+  prop_test(detailed = TRUE, correct = TRUE) %>%
+  glimpse()
 ```
 
 ## Our Own Question
