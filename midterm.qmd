@@ -477,7 +477,7 @@ MDE_total
 save(MDE_total, file =here::here("plots", "MDE_total.rda"))
 png(here::here("plots", "MDE_total.png"))
 MDE_total
-dev.off()
+while (!is.null(dev.list()))  dev.off()
 ```
 
 #### Question Opportunity
@@ -594,7 +594,7 @@ MDE_age_gender <- direct.label(
 MDE_age_gender
 ```
 
-Continuing and Finishing Data Visualization
+Continuing Data Visualization
 
 ```{r}
 # Saving the graph and finishing the Data Visualization
@@ -602,6 +602,350 @@ save(MDE_age_gender, file =here::here("plots", "MDE_age_gender.rda"))
 png(here::here("plots", "MDE_age_gender.png"))
 MDE_age_gender
 while (!is.null(dev.list()))  dev.off()
+
+# See how it affects different Racial/Ethnic Groups
+MDE_race <- percents %>%
+  filter(data_type == "Major_Depressive_Episode", 
+         subgroup == "Race/Ethnicity") %>%
+  mutate(Demographic = forcats::fct_reorder(Demographic, Percent,
+                                            tail, n = 1, .desc = TRUE,
+                                            na.rm = TRUE)) %>%
+  ggplot(aes(x = Year, y = Percent, group = Demographic)) +
+    geom_rect(xmin = 2011, xmax = Inf,   
+              ymin = -Inf, ymax = Inf,   
+              fill = "light gray") +
+    geom_line(aes(color = Demographic), size = 1) +
+    facet_wrap( ~ subgroup) +
+    scale_x_continuous(breaks = seq(2004, 2018, by = 1),
+                       labels = seq(2004, 2018, by = 1),
+                       limits = c(2004, 2018)) +
+    scale_color_viridis_d() +
+    labs(title = "Major Depressive Episode\namong Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+    ocs_theme()
+
+MDE_race
+```
+
+#### Question Opportunity
+How might we remove the Native Hawaiian or Other Pacific Islander group from the
+legend?
+
+```{r}
+MDE_race <- percents %>%
+  filter(data_type == "Major_Depressive_Episode", 
+         subgroup == "Race/Ethnicity", 
+         Demographic != "Native Hawaiian or Other Pacific Islander") %>%
+  mutate(Demographic = fct_reorder(Demographic, Percent,
+                                   tail, n = 1, .desc = TRUE, na.rm = TRUE)) %>%
+  ggplot(aes(x = Year, y = Percent, group = Demographic)) +
+    geom_rect(xmin = 2011, xmax = Inf,   
+              ymin = -Inf, ymax = Inf,   
+              fill = "light gray") +
+    geom_line(aes(color = Demographic), size = 1) +
+    facet_wrap( ~ subgroup) +
+    scale_x_continuous(breaks = seq(2004, 2018, by = 1),
+                       labels = seq(2004, 2018, by = 1),
+                       limits = c(2004, 2018)) +
+    scale_color_viridis_d() +
+    labs(title = "Major Depressive Episode\namong Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+    ocs_theme()
+
+save(MDE_race, file =here::here("plots", "MDE_race.rda"))
+png(here::here("plots", "MDE_race.png"))
+MDE_race
+while (!is.null(dev.list()))  dev.off()
+
+# Now let’s take a look at how the overall rate of youths reporting having a
+# major depressive episode (MDE) with severe impairment has changed over time.
+```
+
+#### Question Opportunity
+Try to come up with the code for the following two plots on your own before you
+reveal it. This time we will remove the legend using the theme() function.
+
+```{r}
+MDES_total <- percents %>%
+  filter(data_type == "Severe_Major_Depressive_Episode",
+         Demographic == "TOTAL") %>% 
+  mutate(Demographic = recode(Demographic, 
+             "TOTAL" = "Percent of respondents with Severe MDE")) %>%
+  ggplot(aes(x = Year, y = Percent, group = Demographic)) +
+    geom_rect(xmin = 2011, xmax = Inf,  
+              ymin = -Inf, ymax = Inf,  
+              fill = "light gray") +
+    geom_line(aes(color = Demographic), size = 1) +
+    scale_x_continuous(breaks = seq(2006, 2018, by = 1),
+                     labels = seq(2006, 2018, by = 1),
+                     limits = c(2006, 2018)) +
+    labs(title = "Major Depressive Episode with Severe Impairment\namong Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+    facet_wrap( ~ Demographic) +
+    ocs_theme() +
+    theme(legend.position = "none") +
+    scale_color_manual(values = c("blue"))
+
+MDES_total
+
+# Next let’s look at age groups and gender differences:
+MDES_age_gender <-
+  percents %>%
+  filter(data_type == "Severe_Major_Depressive_Episode", 
+         subgroup != "Race/Ethnicity", 
+         Demographic != "TOTAL") %>%
+  ggplot(aes(x = Year, y = Percent, group = Demographic)) +
+    geom_rect(xmin = 2011, xmax = Inf,  
+              ymin = -Inf, ymax = Inf,  
+              fill = "light gray") +
+    geom_line(aes(color = Demographic), size = 1)+
+    scale_x_continuous(breaks = seq(2006, 2018, by = 1),
+                      labels = seq(2006, 2018, by = 1),
+                       limits = c(2006, 2018)) +
+    labs(title = "Major Depressive Episode with Severe Impairment\namong Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+    facet_wrap( ~ subgroup) +
+    ocs_theme()
+
+MDES_age_gender  <- direct.label(
+  MDES_age_gender, 
+  list(dl.trans(y = y +0.39, x = x -0.1), 
+       "far.from.others.borders",
+       cex = .8, 
+       fontface = "bold",
+       dl.move("Age: 14-15", x= 2016.5, y = 11))
+  ) +
+  scale_color_manual(values = c(age_col_light, 
+                                age_col, 
+                                age_col_dark, 
+                                Female_col, 
+                                Male_col))
+```
+
+#### Question Opportunity 
+Try to come up with the code for the plot for Racial/Ethnic groups plot on your
+own before you reveal it.
+
+```{r}
+Race_MDES <- percents %>%
+  filter(data_type == "Severe_Major_Depressive_Episode", 
+         subgroup == "Race/Ethnicity") %>%
+  mutate(Demographic = 
+           fct_reorder(Demographic, Percent, 
+                       tail, n = 1, .desc = TRUE, na.rm = TRUE)) %>%
+  ggplot(aes(x = Year, y = Percent, group = Demographic)) +
+    geom_rect(xmin = 2011, xmax = Inf,  
+              ymin = -Inf, ymax = Inf,  
+              fill = "light gray") +
+    geom_line(aes(color = Demographic), size =1) +
+    facet_wrap(~ subgroup) +
+    scale_x_continuous(breaks = seq(2006, 2018, by = 1),
+                       labels = seq(2006, 2018, by = 1),
+                       limits = c(2006, 2018)) +
+    labs(title = "Major Depressive Episode with Severe Impairment\namong Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics: Percentages, 2006-2018") +
+    ocs_theme() +
+    scale_color_viridis_d()
+
+# Now we will take a look at those who reported having a MDE and received
+# treatment for depression.
+
+# First, let’s look overall using the Demographic == "TOTAL" group. We will
+# remove the legend for this plot.
+```
+
+#### Question Opportunity
+Try to come up with the code for this plot on your own before you reveal it.
+
+```{r}
+Treat_total <- percents %>%
+  filter(data_type == "Treatment", 
+         Demographic == "TOTAL") %>%
+  mutate(Demographic = recode(Demographic, 
+             "TOTAL" = "Percent of MDE respondents with treatment")) %>%
+  ggplot(aes(x = Year, y = Percent, group = Demographic)) +
+    geom_rect(xmin = 2011, xmax = Inf,  
+              ymin = -Inf, ymax = Inf,   
+              fill = "light gray") +
+    geom_line(aes(color = Demographic), size = 1.5) +
+    facet_wrap(~Demographic) +
+    scale_x_continuous(breaks = seq(2004, 2018, by = 1),
+                       labels = seq(2004, 2018, by = 1),
+                       limits = c(2004, 2018)) +
+    labs(title = "The Rate of Youths Aged 12 to 17 Receiving Treatment after\nReporting Having a Major Depressive Episode is Increasing") +
+    ocs_theme() +
+    theme(legend.position = "none") +
+    scale_color_manual(values = c("blue"))
+
+Treat_total
+
+save(Treat_total, file =here::here("plots", "Treat_total.rda"))
+png(here::here("plots", "Treat_total.png"))
+Treat_total
+while (!is.null(dev.list()))  dev.off()
+```
+
+#### Question Opportunity
+Try to come up with the code for the treat plot on your own before you
+reveal it.
+```{r}
+treat <- percents %>%
+  filter(data_type == "Treatment", 
+         subgroup != "Race/Ethnicity", 
+         subgroup != "Total") %>%
+  ggplot(aes(x = Year, y = Percent, color = Demographic)) +
+    geom_line(size = 1) +
+    facet_wrap( ~ subgroup) +
+    scale_x_continuous(breaks = seq(2004, 2018, by = 1),
+                       labels = seq(2004, 2018, by = 1),
+                       limits = c(2004, 2018)) + 
+    labs(title = "Receipt of Treatment for Depression among\nPersons Aged 12 to 17 with Major Depressive Episode",
+         subtitle = "By Demographic Characteristics: Percentages, 2004-2018") +
+    ocs_theme()
+
+treat <- direct.label(
+  treat, 
+  list(dl.trans(y = y -1.5, x = x -0.4),
+       "far.from.others.borders", 
+       cex = .8, 
+       fontface = "bold",
+       dl.move("Age: 16-17", x = 2010, y = 42),
+       dl.move("Age: 14-15", x = 2015, y = 38))
+  ) +
+  scale_color_manual(values = c(age_col_light, 
+                                age_col, 
+                                age_col_dark, 
+                                Female_col, 
+                                Male_col))
+treat
+```
+
+#### Question Opportunity
+Create a similar plot on your own for the different race / ethnic groups.
+```{r}
+Race_treat <- percents %>%
+  filter(data_type == "Treatment") %>%
+  filter(subgroup == "Race/Ethnicity") %>%
+  mutate(Demographic = 
+           fct_reorder(Demographic, Percent, 
+                       tail, n = 1, .desc = TRUE)) %>%
+  ggplot(aes(x = Year, y = Percent, color = Demographic)) +
+    geom_line(size = 1) +
+    facet_wrap( ~ subgroup) +
+    scale_x_continuous(breaks = seq(2009, 2018, by = 1),
+                       labels = seq(2009, 2018, by = 1),
+                       limits = c(2009, 2018)) +
+    labs(title = "Receipt of Treatment for Depression among\nPersons Aged 12 to 17 with Major Depressive Episode",
+         subtitle = "By Demographic Characteristics: Percentages, 2004-2018") +
+    ocs_theme() +
+    scale_color_viridis_d()
+
+# Mental Health Services
+Race_treat <- percents %>%
+  filter(data_type == "Treatment") %>%
+  filter(subgroup == "Race/Ethnicity") %>%
+  mutate(Demographic = 
+           fct_reorder(Demographic, Percent, 
+                       tail, n = 1, .desc = TRUE)) %>%
+  ggplot(aes(x = Year, y = Percent, color = Demographic)) +
+    geom_line(size = 1) +
+    facet_wrap( ~ subgroup) +
+    scale_x_continuous(breaks = seq(2009, 2018, by = 1),
+                       labels = seq(2009, 2018, by = 1),
+                       limits = c(2009, 2018)) +
+    labs(title = "Receipt of Treatment for Depression among\nPersons Aged 12 to 17 with Major Depressive Episode",
+         subtitle = "By Demographic Characteristics: Percentages, 2004-2018") +
+    ocs_theme() +
+    scale_color_viridis_d()
+
+# Subcategories of mental health services
+plotMHSS <- table11.1b %>%
+  filter(!str_detect(short_label, "total")) %>%
+  ggplot(aes(x = Year, y = Percent, 
+         group = MHS_setting, color = short_label)) +
+    geom_line(size = 1) +
+    facet_wrap( ~ type) +
+    scale_x_continuous(breaks = seq(2002, 2019, by = 1),
+                       labels = seq(2002, 2019, by = 1),
+                       limits = c(2002, 2019)) +
+    labs(title = "Settings Where Mental Health Services Were Received\namong Persons Aged 12 to 17",
+         subtitle = "Percentages, 2002-2018") +
+    ocs_theme() 
+
+plotMHSS <- direct.label(
+  plotMHSS, 
+  list(dl.trans(y = y +0.3),
+       "far.from.others.borders", 
+       dl.move("School Therapist", 2010, 10), 
+       dl.move("Fostercare", 2010, 1), 
+       dl.move("Therapist", x=2009, y = 10.5))
+  )
+
+plotMHSS
+
+# Overall Outcomes by Group
+gender_outcomes <- 
+  percents %>%
+  filter(Demographic %in% c("Male", "Female", "TOTAL")) %>%
+  ggplot(aes(x = Year, y = Percent, color = Demographic)) +
+    geom_line(aes(linetype = data_type), size = 1) +
+    scale_linetype_manual(values = c("solid", "2262", "13")) +
+    scale_color_manual(values = c(Female_col, Male_col, "black")) +
+    scale_x_continuous(breaks = seq(2004, 2018, by = 1),
+                       labels = seq(2004, 2018, by = 1),
+                       limits = c(2004, 2018)) +
+    labs(title = "Major Depressive Episodes and Treatment Among Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+    facet_wrap( ~ Demographic, strip.position = "top") +
+  ocs_theme() +
+  theme(legend.title = element_blank(),
+        legend.position = "bottom") +
+    guides(color = FALSE)
+
+gender_outcomes
+```
+
+#### Question Opportunity
+Create a similar plot on your own for different age groups.
+
+```{r}
+age_outcomes <-percents %>%
+  filter(subgroup == "Age") %>%
+  ggplot(aes(x = Year, y = Percent, color = Demographic)) +
+    geom_line(aes(linetype= data_type), size = 1) +
+    scale_linetype_manual(values = c("solid", "2262", "13")) +
+    scale_color_manual(values = c(age_col_light, age_col, age_col_dark)) +
+    scale_x_continuous(breaks = seq(2004, 2018, by = 1),
+                       labels = seq(2004, 2018, by = 1),
+                       limits = c(2004, 2018)) +
+    labs(title = "Major Depressive Episode\namong Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+    facet_wrap( ~ Demographic, strip.position = "top")+
+  ocs_theme() +
+  theme(legend.title = element_blank(),
+        legend.position = "bottom") +
+    guides(color = FALSE)
+```
+
+#### Question Opportunity
+Create a similar plot on your own for the different race / ethnic groups.
+```{r}
+race_outcomes <- percents %>%
+  filter(subgroup == "Race/Ethnicity", 
+         Demographic != "Native Hawaiian or Other Pacific Islander") %>%
+  ggplot(aes(x = Year, y = Percent, color = Demographic)) +
+    geom_line(aes(linetype = data_type), size=1) +
+    scale_linetype_manual(values = c("solid", "2262", "13")) +
+    scale_x_continuous(breaks = seq(2004, 2018, by = 1),
+                       labels = seq(2004, 2018, by = 1),
+                       limits = c(2004, 2018)) +
+    labs(title = "Major Depressive Episode\namong Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+    facet_wrap( ~ Demographic, strip.position = "top", nrow = 4) +
+  ocs_theme() +
+  theme(legend.title = element_blank(),
+        legend.position = "bottom") +
+    guides(color = FALSE)
 ```
 
 ### Data Analysis
@@ -868,7 +1212,7 @@ plot_grid(title_plots,
           legend,
           ncol = 1, 
           rel_heights = c(0.1,0.2,.8, 1, 0.3))
-dev.off()
+while (!is.null(dev.list()))  dev.off()
 ```
 
 #### Question Opportunity
@@ -958,7 +1302,7 @@ plot_grid(title_plots,
           row_2,
           ncol = 1, 
           rel_heights = c(0.1, 0.2, 1, 0.1, 1))
-dev.off()
+while (!is.null(dev.list()))  dev.off()
 ```
 
 ## Homework Questions
