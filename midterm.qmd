@@ -609,7 +609,7 @@ MDE_race <- percents %>%
          subgroup == "Race/Ethnicity") %>%
   mutate(Demographic = forcats::fct_reorder(Demographic, Percent,
                                             tail, n = 1, .desc = TRUE,
-                                            na.rm = TRUE)) %>%
+                                            .na_rm = TRUE)) %>%
   ggplot(aes(x = Year, y = Percent, group = Demographic)) +
     geom_rect(xmin = 2011, xmax = Inf,   
               ymin = -Inf, ymax = Inf,   
@@ -637,7 +637,7 @@ MDE_race <- percents %>%
          subgroup == "Race/Ethnicity", 
          Demographic != "Native Hawaiian or Other Pacific Islander") %>%
   mutate(Demographic = fct_reorder(Demographic, Percent,
-                                   tail, n = 1, .desc = TRUE, na.rm = TRUE)) %>%
+                                   tail, n = 1, .desc = TRUE, .na_rm = TRUE)) %>%
   ggplot(aes(x = Year, y = Percent, group = Demographic)) +
     geom_rect(xmin = 2011, xmax = Inf,   
               ymin = -Inf, ymax = Inf,   
@@ -732,7 +732,7 @@ Race_MDES <- percents %>%
          subgroup == "Race/Ethnicity") %>%
   mutate(Demographic = 
            fct_reorder(Demographic, Percent, 
-                       tail, n = 1, .desc = TRUE, na.rm = TRUE)) %>%
+                       tail, n = 1, .desc = TRUE, .na_rm = TRUE)) %>%
   ggplot(aes(x = Year, y = Percent, group = Demographic)) +
     geom_rect(xmin = 2011, xmax = Inf,  
               ymin = -Inf, ymax = Inf,  
@@ -1276,7 +1276,7 @@ MDE_age <- direct.label(
        dl.move("Age: 12-13", x = 2015, y = 9))
   )
 
-# More subtitles for gender and racep lots
+# More subtitles for gender and race plots
 label <- expression(paste(
     bold("Older "),
     "youths and ",
