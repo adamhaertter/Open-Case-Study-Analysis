@@ -40,7 +40,11 @@ For the midterm, you are going to you are going to choose a case study that you 
 
 For our open case study, we have chosen to analyze the [Mental Health of American Youth](https://www.opencasestudies.org/ocs-bp-youth-mental-health/), chosen from the provided list of [Open Case Studies](https://www.opencasestudies.org/#searchtab).
 
-The main questions the case study intends to follow are: 1. How have depression rates in American youth changed since 2004, according to the NSDUH data? How have rates differed between different youth subgroups (age, gender, ethnicity)? 2. Do mental health services appear to be reaching more youths? Again, how have rates differed between different youth subgroups (age, gender, ethnicity)?
+The main questions the case study intends to follow are:
+
+1.  How have depression rates in American youth changed since 2004, according to the NSDUH data? How have rates differed between different youth subgroups (age, gender, ethnicity)?
+
+2.  Do mental health services appear to be reaching more youths? Again, how have rates differed between different youth subgroups (age, gender, ethnicity)?
 
 ```{r lib}
 #| message: false 
@@ -199,12 +203,30 @@ table11.1a %<>%
   filter(MHS_setting != "Juvenile_Justice") %>%
   filter(MHS_setting != "Child_Welfare")
   
+head(table11.1a)
+dim(table11.1a)
+
 # Pivoting data
 table11.1a %<>%
   tidyr::pivot_longer(cols = contains("20"), 
                       names_to = "Year",
                       values_to = "Number") %>%
   mutate(Year = as.numeric(Year))
+
+dim(table11.1a)
+head(table11.1a)
+```
+
+#### Question Opportunity:
+
+Why do we have 340 rows now?
+
+**Answer**: We now have 340 rows because we have pivoted the table to be longer. Previously, the dimensions were 20 x 21, and after the pivot the dimensions are 340 x 6. The number 340 comes from the fact that all of the columns corresponding to years (2002 to 2018) are now each their own rows, with the other columns being preserved. There are 17 of these columns, each with 20 rows before the pivot. Because each of these now becomes its own row, we can see where the new row number comes from: $$17 * 20 = 340$$
+
+Continuing with the data wrangling, we can wrap these previous steps into a singular function which will then be applied to Table 11.1b.
+
+```{r}
+# Continue Data Wrangling
 
 # Defining a similar summary function for future
 # This just requires retracing the same steps as above
@@ -586,7 +608,36 @@ while (!is.null(dev.list()))  dev.off()
 
 ```{r}
 # Data Analysis
+load(file = here::here("data", "wrangled", "wrangled_data.rda"))
 
+# Set up chi squared data
+chi_squared_11.2a <- counts %>%
+  filter(data_type == "Major_Depressive_Episode") %>%
+  filter(Year %in% c(2004, 2018)) %>%
+  filter(Demographic %in% c("Male", "Female")) %>%
+  mutate(Number = Number * 1000) # Data are in thousands
+```
+
+#### Question Opportunity:
+
+Using what you just learned about pivot_wider() and select() and without scrolling up, try to come up with the code to do the wrangling for this data.
+
+```{r}
+chi_squared_11.2a %<>%
+  select(Demographic, Year, Number) %>%
+  pivot_wider(names_from = Year,
+              names_prefix = "Year",
+              values_from = Number)
+```
+
+Continuing on following the case study, we need to continue formatting data for the chi_squared test:
+
+```{r}
+# Continuing data analysis
+chi_squared_11.2a %<>%
+  tibble::column_to_rownames("Demographic")
+
+chi_squared_11.2a
 ```
 
 ### Summary
