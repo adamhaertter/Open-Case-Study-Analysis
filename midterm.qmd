@@ -420,6 +420,166 @@ write_csv(table11.1b, path = here("data", "wrangled", "table11.1b.csv"))
 ```{r}
 # Data Visualization
 
+# Load Wrangled Data from Previous Section
+load(file = here::here("data", "wrangled", "wrangled_data.rda"))
+
+# Major Depressive Episode Graph that emphasizes
+# the increase after 2011 with a background change
+MDE_total <- percents %>%
+  filter(data_type == "Major_Depressive_Episode", 
+         Demographic == "TOTAL") %>%
+  mutate(Demographic = recode(Demographic, 
+             "TOTAL" = "Percent of respondents with MDE")) %>%
+  ggplot(aes(x = Year, y = Percent, group = Demographic)) +
+    facet_wrap( ~ Demographic)+
+    geom_rect(xmin = 2011, xmax = Inf,  
+              ymin = -Inf, ymax = Inf,  
+              fill = "light gray") +
+    geom_line(aes(color = Demographic), size = 1.5) +
+    scale_x_continuous(breaks = seq(2004, 2018, by = 1),
+                       labels = seq(2004, 2018, by = 1),
+                       limits = c(2004, 2018)) +
+    labs(title = "The Rate of Youths Aged 12 to 17 Reporting Having a \n Major Depressive Episode (MDE) is Increasing")+
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 90),
+          legend.position = "none",
+          strip.background = element_rect(fill ="black"),
+          strip.text = element_text(face = "bold", 
+                                    size = 14, 
+                                    color = "white")) +
+    scale_color_manual(values = c("blue"))
+
+MDE_total
+
+# Saving our graph as PNG
+save(MDE_total, file =here::here("plots", "MDE_total.rda"))
+png(here::here("plots", "MDE_total.png"))
+MDE_total
+dev.off()
+```
+
+#### Question Opportunity
+
+What do you expect will happen when if we had used the + symbol to add the geom_rect() function with MDE_total like so? Is that what you anticipated? Why or why not?
+
+```{r}
+MDE_total + 
+  geom_rect(xmin = 2011, xmax = Inf,  
+            ymin = -Inf, ymax = Inf,  
+            fill = "light gray")
+```
+
+**Answer**: Before running it, I expect that the rectangle will probably not act
+in the way that we want it to. I see now that the rectangle actually goes over
+the line and so now we can't actually see anything past 2011. I anticipated
+something like this would happen because if you're making the whole graph before
+adding the background, then it layers on top of what was previously created.
+This leads to situations like these. The code for graphs needs to act like a
+cake where you layer tha elements in the right order so that you can see the
+top as the end result in the way that you want.
+
+Continuing the Data Visualization Section using filters and subgroups
+
+```{r}
+# This function helps keep a repetitive theme that we will use
+ocs_theme <- function() {
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90),
+        strip.background = element_rect(fill = "black"),
+        strip.text = element_text(face = "bold",
+                                  size = 14,
+                                  color = "white"))
+}
+
+#Major Depressive Episode based on Age Range and Gender Subgroups
+MDE_age_gender <- percents %>%
+  filter(data_type == "Major_Depressive_Episode", 
+         subgroup != "Race/Ethnicity", 
+         Demographic != "TOTAL") %>%
+  ggplot(aes(x = Year, y = Percent, color = Demographic)) +
+    geom_line(aes(color = Demographic), size = 1) +
+    scale_x_continuous(breaks = seq(2004, 2018, by = 1),
+                       labels = seq(2004, 2018, by = 1),
+                       limits = c(2004, 2018)) +
+    labs(title = "Major Depressive Episode among Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+    facet_wrap(~ subgroup) +
+    ocs_theme()
+
+MDE_age_gender
+
+#Setting colors as variables
+age_col_light <- c("#B79F00")
+age_col<- c("#6BB100")
+age_col_dark<- c("#00BD5F")
+Female_col <-c("#F564E3")
+Male_col <- c("#619CFF")
+
+# Modify with different labels and font and colors
+MDE_age_gender <- directlabels::direct.label(
+  MDE_age_gender, 
+  list(dl.trans(y = y + 0.38, x = x -0.1), 
+       "far.from.others.borders",
+       cex = .8, 
+       fontface=c("bold"), 
+       dl.move("Age: 14-15", x = 2007, y = 9.7))
+  ) +
+  scale_color_manual(values = c(age_col_light, 
+                                age_col, 
+                                age_col_dark, 
+                                Female_col, 
+                                Male_col))
+
+MDE_age_gender
+```
+
+#### Question Opportunity:
+
+Try to come up with the code for this plot on your own before you reveal it.
+
+```{r}
+MDE_age_gender <-
+  percents %>%
+  filter(data_type == "Major_Depressive_Episode", 
+         subgroup != "Race/Ethnicity", 
+         Demographic != "TOTAL") %>%
+  ggplot(aes(x = Year, y = Percent, group = Demographic)) +
+    geom_rect(xmin = 2011, xmax = Inf,  
+              ymin = -Inf, ymax = Inf,  
+              fill = "light gray") +
+    geom_line(aes(color = Demographic), size =1) +
+    scale_x_continuous(breaks = seq(2004, 2018, by=1),
+                       labels = seq(2004, 2018, by=1),
+                       limits = c(2004, 2018)) +
+    labs(title = "Major Depressive Episode\namong Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+    facet_wrap(~ subgroup) +
+    ocs_theme()
+
+MDE_age_gender <- direct.label(
+  MDE_age_gender, 
+  list(dl.trans(y = y +0.38, x = x -0.2), 
+       "far.from.others.borders", 
+       cex = .8,
+       fontface = "bold",
+       dl.move("Age: 14-15", x = 2008, y =10))
+  ) + 
+  scale_color_manual(values = c(age_col_light, 
+                                age_col, 
+                                age_col_dark, 
+                                Female_col, 
+                                Male_col))
+MDE_age_gender
+```
+
+Continuing and Finishing Data Visualization
+
+```{r}
+# Saving the graph and finishing the Data Visualization
+save(MDE_age_gender, file =here::here("plots", "MDE_age_gender.rda"))
+png(here::here("plots", "MDE_age_gender.png"))
+MDE_age_gender
+while (!is.null(dev.list()))  dev.off()
 ```
 
 ### Data Analysis
