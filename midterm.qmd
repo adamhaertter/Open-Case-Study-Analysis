@@ -40,10 +40,7 @@ For the midterm, you are going to you are going to choose a case study that you 
 
 For our open case study, we have chosen to analyze the [Mental Health of American Youth](https://www.opencasestudies.org/ocs-bp-youth-mental-health/), chosen from the provided list of [Open Case Studies](https://www.opencasestudies.org/#searchtab).
 
-
-The main questions the case study intends to follow are:
-1. How have depression rates in American youth changed since 2004, according to the NSDUH data? How have rates differed between different youth subgroups (age, gender, ethnicity)?
-2. Do mental health services appear to be reaching more youths? Again, how have rates differed between different youth subgroups (age, gender, ethnicity)?
+The main questions the case study intends to follow are: 1. How have depression rates in American youth changed since 2004, according to the NSDUH data? How have rates differed between different youth subgroups (age, gender, ethnicity)? 2. Do mental health services appear to be reaching more youths? Again, how have rates differed between different youth subgroups (age, gender, ethnicity)?
 
 ```{r lib}
 #| message: false 
@@ -65,6 +62,7 @@ library(ggthemes)
 library(rstatix)
 library(cowplot)
 library(OCSdata)
+library(readr)
 
 ```
 
@@ -129,7 +127,7 @@ table11.1a %<>%
 
 # Unifying the NA values based on the legend
 table11.1a %<>%
-   mutate_all(~na_if(., "nc")) %>%
+  mutate_all(~na_if(., "nc")) %>%
   mutate_all(~na_if(., "--")) %>%
   mutate_all(~na_if(., "")) %>%
   mutate_all(~na_if(., "*"))
@@ -208,36 +206,35 @@ table11.1a %<>%
                       values_to = "Number") %>%
   mutate(Year = as.numeric(Year))
 
-# Defining a similar summary function for 
+# Defining a similar summary function for future
 # This just requires retracing the same steps as above
 data_prep_settings <- function(TABLE, new_col, pivot_col){
-  dplyr::as_tibble(TABLE) %>%
-    slice(1:(n() - 1)) %>%
-# make "nc" values NA etc. CHANGE
-    na_if("nc") %>%
-    na_if("--") %>%
-    na_if("") %>%
-    na_if("*") %>% 
-# rename the first column (names(.)[1]) to be what was specified with the new_col argument
-    rename({{new_col}} := names(.)[1]) %>%
-# remove the numbers and punctuation marks and carriage returns (\r) and new lines (\n) from the first column
-    mutate({{new_col}} := 
+  # Convert to tibble
+  as_tibble(TABLE) %>%
+  # Remove last row
+  slice(1:(n() - 1)) %>%
+  # Convert bad values to NA
+  mutate_all(~na_if(., "nc")) %>%
+  mutate_all(~na_if(., "--")) %>%
+  mutate_all(~na_if(., "")) %>%
+  mutate_all(~na_if(., "*")) %>%
+  # Rename column
+  rename({{new_col}} := names(.)[1]) %>%
+  # Clean unwanted characters out
+  mutate({{new_col}} := 
         str_remove_all(string = pull(., {{new_col}}), 
                         pattern = "[:digit:]|\r\n|[:punct:]|")) %>%
-# replace white spaces with a single space
-    mutate({{new_col}} := 
+  mutate({{new_col}} := 
         str_replace_all(string =pull(., {{new_col}}),
                          pattern = "[:blank:]{1,}", 
                          replacement = " ")) %>%
-# remove "a" and , from the values for the columns that are not the first column (called new_col)
-    mutate(dplyr::across(.cols = -{{new_col}},
+  mutate(across(.cols = -{{new_col}},
                        stringr::str_remove_all, "a|,")) %>%
-# make these columns numeric  (all the columns but the first column)
-    mutate(across(-{{new_col}}, as.numeric)) %>%
-# make a new variable called type with 9 values that are Specialty followed by 11 values of Nonspecialty
-    mutate(type = c(rep("Specialty", 9), rep("Nonspecialty", 11))) %>%
-# make a new variable called subtype with the following values repeated various times
-    mutate(subtype = c("Specialty_total",
+  # Make columns numeric where applicable
+  mutate(across(-{{new_col}}, as.numeric)) %>%
+  # Add new variables
+  mutate(type = c(rep("Specialty", 9), rep("Nonspecialty", 11))) %>%
+  mutate(subtype = c("Specialty_total",
                        rep("Outpatient", 5),
                        rep("Inpatient", 3),
                        "Nonspecialty_total",
@@ -246,8 +243,7 @@ data_prep_settings <- function(TABLE, new_col, pivot_col){
                        rep("Juvenile_Justice", 2),
                        rep("Child_Welfare", 2),
                        "combination")) %>% 
-# make a new variable called short_label to use as labels for plots for the data
-    mutate(short_label = c("Specialty total", "Outpatient total",  
+  mutate(short_label = c("Specialty total", "Outpatient total",  
                            "Therapist", "Clinic", "Day program", 
                            "In-home Therapist", "Inpatient total",
                            "Hospital", "Residential Center",
@@ -257,18 +253,165 @@ data_prep_settings <- function(TABLE, new_col, pivot_col){
                            "Justice System", "Justice System", 
                            "Welfare", "Fostercare", 
                            "Specialty Combination")) %>%
-# remove rows were all the values are NA - 
-# the number of `NA` values for a row should be less than the number of columns that could have `NA` values
+  # Remove majority NA rows
   filter(rowSums(is.na(select(., is.numeric))) <
            length(select(., is.numeric))) %>%
-# make the table into long format so that the year columns are collapsed together 
-# the new value column is called what was specified with the "pivot_col" argument
+  # Reformat table
   pivot_longer(cols = contains("20"),
                names_to = "Year", 
                values_to = pivot_col)%>%
-# make the new "Year" variable numeric
   mutate(Year = as.numeric(Year))
 }
+
+# Applying the transformation 11.1b
+table11.1b <- data_prep_settings(TABLE = table11.1b, 
+                   new_col = "MHS_setting",
+                   pivot_col = "Percent")
+
+# Defining function for demographic tables
+data_dem_settings <- function(TABLE){
+  # Convert to tibble
+  as_tibble(TABLE) %>%
+  # Remove the last row
+  slice(1:(n()-1)) %>%
+  # Convert bad values to NA
+  mutate_all(~na_if(., "nc")) %>%
+  mutate_all(~na_if(., "--")) %>%
+  mutate_all(~na_if(., "")) %>%
+  mutate_all(~na_if(., "*")) %>%
+  # Rename the first column to be "Demographic"
+  rename(Demographic := names(.)[1]) %>%
+  # Replace unwanted characters
+  mutate(Demographic := str_replace_all(string = pull(., Demographic),
+                                        pattern = "[:blank:]{1,}", 
+                                        replacement = " ")) %>%
+  mutate(Demographic = str_replace(string = Demographic, 
+                                   pattern = "1", 
+                                   replacement = "Age: 1")) %>%
+  # Create new variable
+  mutate(subgroup = c("Total", rep("Age", 4), 
+                    rep("Gender", 3), rep("Race/Ethnicity", 9))) %>%
+  # Remove "a" from numbers
+  mutate(across(.cols = contains("20"),
+                       stringr::str_remove_all, "a|,")) %>%
+  # Convert to numeric
+  mutate(across(contains("20"), as.numeric)) %>%
+  # Remove majority NA rows
+  filter(rowSums(is.na(select(., is.numeric))) < length(select(., is.numeric)))
+}
+
+# Applying table format to other tables
+table11.2a <- data_dem_settings(TABLE = table11.2a)
+table11.2b <- data_dem_settings(TABLE = table11.2b)
+table11.3a <- data_dem_settings(TABLE = table11.3a)
+table11.3b <- data_dem_settings(TABLE = table11.3b)
+table11.4a <- data_dem_settings(TABLE = table11.4a)
+table11.4b <- data_dem_settings(TABLE = table11.4b)
+
+# Assigning data_type
+table11.2a %<>% mutate(data_type = "Major_Depressive_Episode")
+table11.2a %<>% mutate(data_type = "Major_Depressive_Episode")
+table11.2b %<>% mutate(data_type = "Major_Depressive_Episode")
+table11.3a %<>% mutate(data_type = "Severe_Major_Depressive_Episode")
+table11.3b %<>% mutate(data_type = "Severe_Major_Depressive_Episode")
+table11.4a %<>% mutate(data_type = "Treatment")
+table11.4b %<>% mutate(data_type = "Treatment")
+
+# Checking the data formats
+data_dem_check <- function(TABLE){
+  results <- tibble(
+    tibble_check = case_when(is_tibble(TABLE) ~ "Good!",
+                             TRUE ~ "Not a tibble"),
+    legend_check = case_when(TABLE %>% 
+                               slice(n()) %>% 
+                               pull(`2018`) %>%
+                               str_detect(pattern = "--")  ~ "Legend might still be there",
+                             TRUE ~ "Good!"),
+    NAs_check = case_when(any(str_detect(TABLE, pattern = "nc")) 
+                          ~ "NA not fixed",
+                          TRUE ~ "Good!"),
+    firstcol_check = case_when(names(TABLE)[1] == "Demographic" 
+                               ~ "Good!",
+                               TRUE ~ "check first column"),
+    white_space_check = case_when(any(str_detect(TABLE, pattern = "[:blank:]{2,}")) 
+                                  ~ "white spaces not fixed",
+                                  TRUE ~ "Good!"),
+    age_data_check = case_when(any(str_detect(pull(TABLE, Demographic), pattern = "^1"))
+                               ~ "Age data not fixed!",
+                               TRUE ~ "Good!"),
+    subgroup_check = case_when(any(names(TABLE) == "subgroup")
+                               ~ "Good!",
+                               TRUE ~ "No subgroup variable!"),
+    a_comma_check = case_when(TABLE%>% select(-Demographic, -subgroup, -data_type) %>% 
+                                map_df(~(str_detect(.x, pattern ="a|,"))) %>%
+                                rowSums(na.rm = TRUE) %>% 
+                                sum() == 0
+                              ~ "Good!",
+                              TRUE ~ "There may be commas or the letter a in the year columns!"),
+    numeric_check = case_when(sum(map_dbl(TABLE, is.numeric))== sum(str_count(names(TABLE), "20"))
+                              ~ "Good!",
+                              TRUE ~ "Variables are not numeric!"),
+    empty_row_check = case_when(nrow(TABLE %>%filter(rowSums(is.na(select(., is.numeric))) > 
+                                                       length(select(., is.numeric)))) > 0 
+                                ~ "There are empty rows ",
+                                TRUE ~ "Good!"))
+  
+  ifelse(all(results == "Good!"),
+         "Data looks good!", glimpse(results))
+}
+
+tables_to_check <- list(table11.2a, 
+                       table11.2b, 
+                       table11.3a, 
+                       table11.3b, 
+                       table11.4a, 
+                       table11.4b)
+tables_to_check %>% map(data_dem_check)
+
+# Binding count data and percent data
+counts <- bind_rows(table11.2a, table11.3a, table11.4a)
+percents <- bind_rows(table11.2b, table11.3b, table11.4b)
+
+counts %>% distinct(data_type)
+percents %>% distinct(data_type)
+
+counts %<>% pivot_longer(cols = contains("20"), 
+                         names_to = "Year", 
+                         values_to = "Number") %>%
+            mutate(Year = as.numeric(Year))
+
+percents %<>% pivot_longer(cols = contains("20"), 
+                           names_to = "Year", 
+                           values_to = "Percent") %>%
+              mutate(Year = as.numeric(Year))
+
+glimpse(counts)
+glimpse(percents)
+
+# Updating Demographics
+percents %<>% mutate(Demographic = str_replace(string = Demographic, 
+                                             pattern = "AIAN",
+                                         replacement = "American Indian and Alaska Native"))
+
+percents %<>% mutate(Demographic =  str_replace(string = Demographic,
+                                             pattern = "NHOPI",
+                                         replacement = "Native Hawaiian or Other Pacific Islander"))
+
+counts %<>% mutate(Demographic = str_replace(string = Demographic, 
+                                             pattern = "AIAN",
+                                         replacement = "American Indian and Alaska Native"))
+
+counts %<>% mutate(Demographic =  str_replace(string = Demographic, 
+                                             pattern = "NHOPI",
+                                         replacement = "Native Hawaiian or Other Pacific Islander"))
+
+# Saving data
+save(percents, counts, table11.1a, table11.1b, 
+     file = here("data", "wrangled", "wrangled_data.rda"))
+write_csv(percents, path = here("data", "wrangled", "percents.csv"))
+write_csv(counts, path = here("data", "wrangled", "counts.csv"))
+write_csv(table11.1a, path = here("data", "wrangled", "table11.1a.csv"))
+write_csv(table11.1b, path = here("data", "wrangled", "table11.1b.csv"))
 
 ```
 
@@ -292,7 +435,6 @@ data_prep_settings <- function(TABLE, new_col, pivot_col){
 # Summary
 
 ```
-
 
 ## Homework Questions
 
