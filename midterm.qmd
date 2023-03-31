@@ -501,14 +501,7 @@ MDE_total +
             fill = "light gray")
 ```
 
-**Answer**: Before running it, I expect that the rectangle will probably not act
-in the way that we want it to. I see now that the rectangle actually goes over
-the line and so now we can't actually see anything past 2011. I anticipated
-something like this would happen because if you're making the whole graph before
-adding the background, then it layers on top of what was previously created.
-This leads to situations like these. The code for graphs needs to act like a
-cake where you layer tha elements in the right order so that you can see the
-top as the end result in the way that you want.
+**Answer**: Before running it, I expect that the rectangle will probably not act in the way that we want it to. I see now that the rectangle actually goes over the line and so now we can't actually see anything past 2011. I anticipated something like this would happen because if you're making the whole graph before adding the background, then it layers on top of what was previously created. This leads to situations like these. The code for graphs needs to act like a cake where you layer tha elements in the right order so that you can see the top as the end result in the way that you want.
 
 Continuing the Data Visualization Section using filters and subgroups
 
@@ -638,8 +631,8 @@ MDE_race
 ```
 
 #### Question Opportunity
-How might we remove the Native Hawaiian or Other Pacific Islander group from the
-legend?
+
+How might we remove the Native Hawaiian or Other Pacific Islander group from the legend?
 
 ```{r}
 MDE_race <- percents %>%
@@ -672,8 +665,8 @@ while (!is.null(dev.list()))  dev.off()
 ```
 
 #### Question Opportunity
-Try to come up with the code for the following two plots on your own before you
-reveal it. This time we will remove the legend using the theme() function.
+
+Try to come up with the code for the following two plots on your own before you reveal it. This time we will remove the legend using the theme() function.
 
 ```{r}
 MDES_total <- percents %>%
@@ -732,9 +725,9 @@ MDES_age_gender  <- direct.label(
                                 Male_col))
 ```
 
-#### Question Opportunity 
-Try to come up with the code for the plot for Racial/Ethnic groups plot on your
-own before you reveal it.
+#### Question Opportunity
+
+Try to come up with the code for the plot for Racial/Ethnic groups plot on your own before you reveal it.
 
 ```{r}
 Race_MDES <- percents %>%
@@ -765,6 +758,7 @@ Race_MDES <- percents %>%
 ```
 
 #### Question Opportunity
+
 Try to come up with the code for this plot on your own before you reveal it.
 
 ```{r}
@@ -796,8 +790,9 @@ while (!is.null(dev.list()))  dev.off()
 ```
 
 #### Question Opportunity
-Try to come up with the code for the treat plot on your own before you
-reveal it.
+
+Try to come up with the code for the treat plot on your own before you reveal it.
+
 ```{r}
 treat <- percents %>%
   filter(data_type == "Treatment", 
@@ -831,7 +826,9 @@ treat
 ```
 
 #### Question Opportunity
+
 Create a similar plot on your own for the different race / ethnic groups.
+
 ```{r}
 Race_treat <- percents %>%
   filter(data_type == "Treatment") %>%
@@ -916,6 +913,7 @@ gender_outcomes
 ```
 
 #### Question Opportunity
+
 Create a similar plot on your own for different age groups.
 
 ```{r}
@@ -938,7 +936,9 @@ age_outcomes <-percents %>%
 ```
 
 #### Question Opportunity
+
 Create a similar plot on your own for the different race / ethnic groups.
+
 ```{r}
 race_outcomes <- percents %>%
   filter(subgroup == "Race/Ethnicity", 
@@ -998,9 +998,10 @@ chisq.test(chi_squared_11.2a)
 ```
 
 #### Question Opportunity:
+
 Using what you learned about the Chi-squared test, describe the results in reference to the null hypothesis.
 
-__Answer__: Since the p-value is less than $2.2^{-16}$, we know that the p-value is extremely small. Without having out $\alpha$ significance level explicitly defined, we can assume that $\alpha = 0.05$. Our p-value is much smaller than $\alpha$, so we can reject the null-hypothesis in this case. If $H_0$: The variables are independent, then therefore we have evidence to reject this hypothesis, and evidence suggests that the variables are not, in fact, independent.
+**Answer**: Since the p-value is less than $2.2^{-16}$, we know that the p-value is extremely small. Without having out $\alpha$ significance level explicitly defined, we can assume that $\alpha = 0.05$. Our p-value is much smaller than $\alpha$, so we can reject the null-hypothesis in this case. If $H_0$: The variables are independent, then therefore we have evidence to reject this hypothesis, and evidence suggests that the variables are not, in fact, independent.
 
 Continuing with the data analysis, we need to set up a test to describe the size of the association present.
 
@@ -1132,6 +1133,7 @@ title_plots <-
 ```
 
 #### Question Opportunity
+
 What happens if we modify the hjust value?
 
 **Answer**: It changes the justification of the text horizontally
@@ -1192,6 +1194,7 @@ legend <- get_legend(MDE_race_for_mp_leg +
 ```
 
 #### Question Opportunity
+
 Do you remember how to do this?
 
 ***Answer***: Yes, in theme I can set the legend.position to equal "none"
@@ -1226,6 +1229,7 @@ while (!is.null(dev.list()))  dev.off()
 ```
 
 #### Question Opportunity
+
 Try to come up with the code for these plots on your own before you reveal it. We can use our ocs_theme() for these plots to make all the plots look similar.
 
 ```{r}
@@ -1334,6 +1338,7 @@ save(table11.5a, table11.5b,
 ```
 
 ### Data Wrangling
+
 ```{r}
 # Apply demographic transformations
 table11.5a <- data_dem_settings(TABLE = table11.5a)
@@ -1448,7 +1453,7 @@ chi_squared_11.5a <- counts %>%
 
 chi_squared_11.5a
 
-# Running chi-squared test for 11.3a
+# Running chi-squared test for 11.5a
 chisq.test(chi_squared_11.5a)
 
 t(chi_squared_11.5a) %>% 
@@ -1458,9 +1463,109 @@ t(chi_squared_11.5a) %>%
 
 ## Our Own Question
 
-For our own question, we would like to examine **\[Write about this more\]**
+For our own question, we would like to examine which age group had the largest spike in data from one year to the next. Is this group the same as the group with the highest maximum value?
+
+We can apply this question to both Major Depressive Episode data and Major Depressive Episode with Severe Impairment.
 
 ```{r}
 # Our Own Question
 
+# Load in data
+load(file = here::here("data", "wrangled", "wrangled_data.rda"))
+
+# Finding summary for largest change
+max_change <- function(df, subgroup, data_type, column) {
+  {{df}} %>%
+  # Drop NAs to get valid data, they aren't helpful
+  drop_na() %>%
+  # Filter by provided parameters
+  filter(subgroup == {{subgroup}}) %>%
+  filter(data_type == {{data_type}}) %>%
+  group_by(Demographic) %>%
+  # Calculate and summarize by change
+  mutate(Change = {{column}} - lag({{column}}, default = 0)) %>%
+  summarize(max_change = max(Change))
+}
+
+# Apply our function
+change_MDE <- max_change(counts, "Age", "Major_Depressive_Episode", Number)
+change_MDES <- max_change(counts, "Age", "Severe_Major_Depressive_Episode", Number)
+change_TMDE <- max_change(counts, "Age", "Treatment", Number)
+change_TMDES <- max_change(counts, "Age", "Treatment_for_Severe_Major_Depressive_Episode", Number)
+
+glimpse(change_MDE)
+glimpse(change_MDES)
+glimpse(change_TMDE)
+glimpse(change_TMDES)
+
 ```
+
+From the provided data, we can see that the maximum change for each of the four data types is always associated with the age range of 17 to 18 year olds. This pattern holds true for all four data types.
+
+Now we want to ask, how does this relate to which age groups are known to have the maximum value for each of our four categories? To do this, we must simply find the maximum value for each of our four data types. The steps here are very similar to that of the last part, but we need to modify our function to pull the new information we want.
+
+```{r}
+# Finding summary for largest change
+max_val <- function(df, subgroup, data_type, column) {
+  {{df}} %>%
+  # Drop NAs to get valid data, they aren't helpful
+  drop_na() %>%
+  # Filter by provided parameters
+  filter(subgroup == {{subgroup}}) %>%
+  filter(data_type == {{data_type}}) %>%
+  group_by(Demographic) %>%
+  # Calculate and summarize by maximum
+  summarize(max_val = max({{column}}))
+}
+
+# Apply our function
+val_MDE <- max_val(counts, "Age", "Major_Depressive_Episode", Number)
+val_MDES <- max_val(counts, "Age", "Severe_Major_Depressive_Episode", Number)
+val_TMDE <- max_val(counts, "Age", "Treatment", Number)
+val_TMDES <- max_val(counts, "Age", "Treatment_for_Severe_Major_Depressive_Episode", Number)
+
+glimpse(val_MDE)
+glimpse(val_MDES)
+glimpse(val_TMDE)
+glimpse(val_TMDES)
+
+```
+
+The highest count is always for 17-18 year olds. This is not a surprise, as looking at the graphs from the Data Visualization section will give the same type of information in graph form. There, we can see that the 17-18 year old group tends to trend higher than the other age groups in general. As for relating to the changing values, we can see that these definitely seem to be related, as all 4 of the groups for maximum change are the same as they are for maximum value. The lowest of the age groups seems to be the same, as well.
+
+We calculated this data using the `counts` data, which may be causing this unfair disparity in the data. How would this change if we used `percents` instead? Perhaps that would be a more fair representation of the changes in the data? Since we already have the functions defined, checking this will be simple.
+
+```{r}
+# Note: We had to go back and modify the functions to be able to reuse them
+# Reusing the functions was not as easy since we hard coded the column names
+# Now, they are more useful, but it almost would have been easier to define new ones
+
+# Apply our function
+pct_MDE <- max_change(percents, "Age", "Major_Depressive_Episode", Percent)
+pct_MDES <- max_change(percents, "Age", "Severe_Major_Depressive_Episode", Percent)
+pct_TMDE <- max_change(percents, "Age", "Treatment", Percent)
+pct_TMDES <- max_change(percents, "Age", "Treatment_for_Severe_Major_Depressive Episode", Percent)
+
+
+# Apply our function
+pct_MDE %<>% 
+  full_join(max_val(percents, "Age", "Major_Depressive_Episode", Percent), 
+            by = "Demographic")
+pct_MDES %<>% 
+  full_join(max_val(percents, "Age", "Severe_Major_Depressive_Episode", Percent), 
+            by = "Demographic")
+pct_TMDE %<>% 
+  full_join(max_val(percents, "Age", "Treatment", Percent), 
+            by = "Demographic")
+pct_TMDES %<>% 
+  full_join(max_val(percents, "Age", "Treatment_for_Severe_Major_Depressive Episode", Percent), 
+         by = "Demographic")
+
+glimpse(pct_MDE)
+glimpse(pct_MDES)
+glimpse(pct_TMDE)
+glimpse(pct_TMDES)
+```
+
+Surprisingly, this does not change the results for the maximum values for neither the change nor the strictly maximum value. However, there is an alteration in the patterns here that we can see easily. While the maximums may not have changed, the minimums have. The minimum values for each is no longer limited to the age group of 12 - 13 year olds. Here, we can see that a change has been made, and using `percents` does actually give us a better representation of the data compared to `counts`. It just so happens that both datasets produced the same age groups for maximum change and maximum value.
+
