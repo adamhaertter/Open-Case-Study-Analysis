@@ -445,6 +445,16 @@ write_csv(table11.1b, path = here("data", "wrangled", "table11.1b.csv"))
 # Load Wrangled Data from Previous Section
 load(file = here::here("data", "wrangled", "wrangled_data.rda"))
 
+# Major depressive episodes among youths across time in various demographics
+percents %>%
+  filter(data_type == "Major_Depressive_Episode") %>%
+  ggplot2::ggplot(aes(x = Year, y = Percent, 
+                      color = Demographic)) +
+      geom_line(size = 1) +
+      labs(title = "Major Depressive Episode among Persons Aged 12 to 17",
+           subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+  theme(legend.position = "bottom")
+
 # Major Depressive Episode Graph that emphasizes
 # the increase after 2011 with a background change
 MDE_total <- percents %>%
@@ -1329,15 +1339,21 @@ save(table11.5a, table11.5b,
 table11.5a <- data_dem_settings(TABLE = table11.5a)
 table11.5b <- data_dem_settings(TABLE = table11.5b)
 table11.5a %<>% mutate(data_type = "Treatment_for_Severe_Major_Depressive_Episode")
-table11.5b %<>% mutate(data_type = "Treatment_for_Severe_Major_Depressive Episode")
+table11.5b %<>% mutate(data_type = "Treatment_for_Severe_Major_Depressive_Episode")
 
-tables_to_check_hw <- list(table11.5a, table11.5b)
+tables_to_check_hw <- list(table11.2a,
+                           table11.2b,
+                           table11.3a,
+                           table11.3b,
+                           table11.4a,
+                           table11.4b,
+                           table11.5a,
+                           table11.5b)
 tables_to_check_hw %>% map(data_dem_check)
 
 # Recreate counts and percents with new tables
 counts <- bind_rows(table11.2a, table11.3a, table11.4a, table11.5a)
 percents <- bind_rows(table11.2b, table11.3b, table11.4b, table11.5b)
-
 # Altering counts and percents
 ## This is copied from above, as the same transformations need to apply
 
@@ -1374,10 +1390,12 @@ counts %<>% mutate(Demographic =  str_replace(string = Demographic,
                                          replacement = "Native Hawaiian or Other Pacific Islander"))
 
 # Saving data
-save(percents, counts, table11.1a, table11.1b, 
+save(percents, counts, table11.5a, table11.5b, 
      file = here("data", "wrangled", "wrangled_data.rda"))
 write_csv(percents, path = here("data", "wrangled", "percents.csv"))
 write_csv(counts, path = here("data", "wrangled", "counts.csv"))
+write_csv(table11.5a, path = here("data", "wrangled", "table11.5a.csv"))
+write_csv(table11.5b, path = here("data", "wrangled", "table11.5b.csv"))
 ```
 
 ### Data Visualization
@@ -1385,7 +1403,31 @@ write_csv(counts, path = here("data", "wrangled", "counts.csv"))
 ```{r}
 # Plotting
 
-#TODO: Finish the Plotting for this
+# Load Wrangled Data from Previous Section
+load(file = here::here("data", "wrangled", "wrangled_data.rda"))
+
+
+SMDE_total <- percents %>%
+  filter(data_type == "Treatment_for_Severe_Major_Depressive_Episode", 
+         subgroup != "Race/Ethnicity", 
+         Demographic != "TOTAL") %>%
+  ggplot(aes(x = Year, y = Percent, color = Demographic)) +
+    geom_line(aes(color = Demographic), size = 1) +
+    scale_x_continuous(breaks = seq(2004, 2018, by = 1),
+                       labels = seq(2004, 2018, by = 1),
+                       limits = c(2004, 2018)) +
+    labs(title = "Treatment for Severe Major Depressive Episode among Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+    facet_wrap(~ subgroup) +
+    ocs_theme()
+
+SMDE_total
+
+# Saving our graph as PNG
+save(SMDE_total, file =here::here("plots", "SMDE_total.rda"))
+png(here::here("plots", "SMDE_total.png"))
+SMDE_total
+while (!is.null(dev.list()))  dev.off()
 ```
 
 ### Data Analysis
