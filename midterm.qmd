@@ -1410,14 +1410,14 @@ load(file = here::here("data", "wrangled", "wrangled_data.rda"))
 SMDE_total <- percents %>%
   filter(data_type == "Treatment_for_Severe_Major_Depressive_Episode", 
          subgroup != "Race/Ethnicity", 
-         Demographic != "TOTAL") %>%
+         Demographic == c("Male","Female")) %>%
   ggplot(aes(x = Year, y = Percent, color = Demographic)) +
     geom_line(aes(color = Demographic), size = 1) +
-    scale_x_continuous(breaks = seq(2004, 2018, by = 1),
-                       labels = seq(2004, 2018, by = 1),
-                       limits = c(2004, 2018)) +
+    scale_x_continuous(breaks = seq(2006, 2018, by = 1),
+                       labels = seq(2006, 2018, by = 1),
+                       limits = c(2006, 2018)) +
     labs(title = "Treatment for Severe Major Depressive Episode among Persons Aged 12 to 17",
-         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+         subtitle = "By Demographic Characteristics, Percentages, 2006-2018") +
     facet_wrap(~ subgroup) +
     ocs_theme()
 
