@@ -690,7 +690,7 @@ MDES_total <- percents %>%
                      labels = seq(2006, 2018, by = 1),
                      limits = c(2006, 2018)) +
     labs(title = "Major Depressive Episode with Severe Impairment\namong Persons Aged 12 to 17",
-         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+         subtitle = "By Demographic Characteristics, Percentages, 2006-2018") +
     facet_wrap( ~ Demographic) +
     ocs_theme() +
     theme(legend.position = "none") +
@@ -713,7 +713,7 @@ MDES_age_gender <-
                       labels = seq(2006, 2018, by = 1),
                        limits = c(2006, 2018)) +
     labs(title = "Major Depressive Episode with Severe Impairment\namong Persons Aged 12 to 17",
-         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+         subtitle = "By Demographic Characteristics, Percentages, 2006-2018") +
     facet_wrap( ~ subgroup) +
     ocs_theme()
 
@@ -730,6 +730,7 @@ MDES_age_gender  <- direct.label(
                                 age_col_dark, 
                                 Female_col, 
                                 Male_col))
+MDES_age_gender
 ```
 
 #### Question Opportunity 
@@ -756,6 +757,8 @@ Race_MDES <- percents %>%
          subtitle = "By Demographic Characteristics: Percentages, 2006-2018") +
     ocs_theme() +
     scale_color_viridis_d()
+
+Race_MDES
 
 # Now we will take a look at those who reported having a MDE and received
 # treatment for depression.
@@ -1406,28 +1409,106 @@ write_csv(table11.5b, path = here("data", "wrangled", "table11.5b.csv"))
 # Load Wrangled Data from Previous Section
 load(file = here::here("data", "wrangled", "wrangled_data.rda"))
 
-
+#Increase Over Time
 SMDE_total <- percents %>%
   filter(data_type == "Treatment_for_Severe_Major_Depressive_Episode", 
-         subgroup != "Race/Ethnicity", 
-         Demographic == c("Male","Female")) %>%
-  ggplot(aes(x = Year, y = Percent, color = Demographic)) +
-    geom_line(aes(color = Demographic), size = 1) +
+         Demographic == "TOTAL") %>%
+  mutate(Demographic = recode(Demographic, 
+             "TOTAL" = "Percent of respondents treated with SMDE")) %>%
+  ggplot(aes(x = Year, y = Percent, group = Demographic)) +
+    facet_wrap( ~ Demographic)+
+    geom_rect(xmin = 2009, xmax = Inf,  
+              ymin = -Inf, ymax = Inf,  
+              fill = "light gray") +
+    geom_line(aes(color = Demographic), size = 1.5) +
     scale_x_continuous(breaks = seq(2006, 2018, by = 1),
                        labels = seq(2006, 2018, by = 1),
                        limits = c(2006, 2018)) +
-    labs(title = "Treatment for Severe Major Depressive Episode among Persons Aged 12 to 17",
-         subtitle = "By Demographic Characteristics, Percentages, 2006-2018") +
-    facet_wrap(~ subgroup) +
-    ocs_theme()
-
-SMDE_total
+    labs(title = "The Rate of Youths Aged 12 to 17 Treated with \n Severe Major Depressive Episode (MDE) is Increasing")+
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 90),
+          legend.position = "none",
+          strip.background = element_rect(fill ="black"),
+          strip.text = element_text(face = "bold", 
+                                    size = 14, 
+                                    color = "white")) +
+    scale_color_manual(values = c("blue"))
 
 # Saving our graph as PNG
 save(SMDE_total, file =here::here("plots", "SMDE_total.rda"))
 png(here::here("plots", "SMDE_total.png"))
-SMDE_total
 while (!is.null(dev.list()))  dev.off()
+
+# Comparison of Age and Gender Groups
+SMDE_age_gender <-
+  percents %>%
+  filter(data_type == "Treatment_for_Severe_Major_Depressive_Episode", 
+         subgroup != "Race/Ethnicity", 
+         Demographic != "TOTAL") %>%
+  ggplot(aes(x = Year, y = Percent, group = Demographic)) +
+    geom_rect(xmin = 2009, xmax = Inf,  
+              ymin = -Inf, ymax = Inf,  
+              fill = "light gray") +
+    geom_line(aes(color = Demographic), size =1) +
+    scale_x_continuous(breaks = seq(2006, 2018, by=1),
+                       labels = seq(2006, 2018, by=1),
+                       limits = c(2006, 2018)) +
+    labs(title = "Treatment for Sevre Major Depressive Episode\namong Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics, Percentages, 2006-2018") +
+    facet_wrap(~ subgroup) +
+    ocs_theme()
+
+SMDE_age_gender <- direct.label(
+  SMDE_age_gender, 
+  list(dl.trans(y = y +0.38, x = x -0.2), 
+       "far.from.others.borders", 
+       cex = .8,
+       fontface = "bold",
+       dl.move("Age: 12-13", x = 2015, y = 36),
+       dl.move("Age: 14-15", x = 2015, y = 42),
+       dl.move("Age: 16-17", x = 2008, y = 48),
+       dl.move("Male", x = 2012, y = 34)
+    )
+  ) + 
+  scale_color_manual(values = c(age_col_light, 
+                                age_col, 
+                                age_col_dark, 
+                                Female_col, 
+                                Male_col))
+
+# Saving our graph as PNG
+save(SMDE_age_gender, file =here::here("plots", "SMDE_age_gender.rda"))
+png(here::here("plots", "SMDE_age_gender.png"))
+while (!is.null(dev.list()))  dev.off()
+
+# Comparison of Racial/Ethnic Groups
+SMDE_race <- percents %>%
+  filter(data_type == "Treatment_for_Severe_Major_Depressive_Episode", 
+         subgroup == "Race/Ethnicity") %>%
+  mutate(Demographic = forcats::fct_reorder(Demographic, Percent,
+                                            tail, n = 1, .desc = TRUE,
+                                            .na_rm = TRUE)) %>%
+  ggplot(aes(x = Year, y = Percent, group = Demographic)) +
+    geom_rect(xmin = 2011, xmax = Inf,   
+              ymin = -Inf, ymax = Inf,   
+              fill = "light gray") +
+    geom_line(aes(color = Demographic), size = 1) +
+    facet_wrap( ~ subgroup) +
+    scale_x_continuous(breaks = seq(2004, 2018, by = 1),
+                       labels = seq(2004, 2018, by = 1),
+                       limits = c(2004, 2018)) +
+    scale_color_viridis_d() +
+    labs(title = "Major Depressive Episode\namong Persons Aged 12 to 17",
+         subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
+    ocs_theme()
+
+save(SMDE_race, file =here::here("plots", "SMDE_race.rda"))
+png(here::here("plots", "SMDE_race.png"))
+while (!is.null(dev.list()))  dev.off()
+
+SMDE_total
+SMDE_age_gender
+SMDE_race
 ```
 
 ### Data Analysis
