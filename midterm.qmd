@@ -114,7 +114,7 @@ save(table11.1a, table11.1b, table11.2a, table11.2b,
 
 ```{r}
 # Data Wrangling
-load(file = here::here("data", "imported", "imported_data.rda"))
+load(file = here("data", "imported", "imported_data.rda"))
 
 # Separating the legend
 legend <- table11.1a %>%
@@ -208,7 +208,7 @@ dim(table11.1a)
 
 # Pivoting data
 table11.1a %<>%
-  tidyr::pivot_longer(cols = contains("20"), 
+  pivot_longer(cols = contains("20"), 
                       names_to = "Year",
                       values_to = "Number") %>%
   mutate(Year = as.numeric(Year))
@@ -251,7 +251,7 @@ data_prep_settings <- function(TABLE, new_col, pivot_col){
                          pattern = "[:blank:]{1,}", 
                          replacement = " ")) %>%
   mutate(across(.cols = -{{new_col}},
-                       stringr::str_remove_all, "a|,")) %>%
+                       str_remove_all, "a|,")) %>%
   # Make columns numeric where applicable
   mutate(across(-{{new_col}}, as.numeric)) %>%
   # Add new variables
@@ -315,7 +315,7 @@ data_dem_settings <- function(TABLE){
                     rep("Gender", 3), rep("Race/Ethnicity", 9))) %>%
   # Remove "a" from numbers
   mutate(across(.cols = contains("20"),
-                       stringr::str_remove_all, "a|,")) %>%
+                       str_remove_all, "a|,")) %>%
   # Convert to numeric
   mutate(across(contains("20"), as.numeric)) %>%
   # Remove majority NA rows
@@ -443,12 +443,12 @@ write_csv(table11.1b, path = here("data", "wrangled", "table11.1b.csv"))
 # Data Visualization
 
 # Load Wrangled Data from Previous Section
-load(file = here::here("data", "wrangled", "wrangled_data.rda"))
+load(file = here("data", "wrangled", "wrangled_data.rda"))
 
 # Major depressive episodes among youths across time in various demographics
 percents %>%
   filter(data_type == "Major_Depressive_Episode") %>%
-  ggplot2::ggplot(aes(x = Year, y = Percent, 
+  ggplot(aes(x = Year, y = Percent, 
                       color = Demographic)) +
       geom_line(size = 1) +
       labs(title = "Major Depressive Episode among Persons Aged 12 to 17",
@@ -484,8 +484,8 @@ MDE_total <- percents %>%
 MDE_total
 
 # Saving our graph as PNG
-save(MDE_total, file =here::here("plots", "MDE_total.rda"))
-png(here::here("plots", "MDE_total.png"))
+save(MDE_total, file = here("plots", "MDE_total.rda"))
+png(here("plots", "MDE_total.png"))
 MDE_total
 while (!is.null(dev.list()))  dev.off()
 ```
@@ -541,7 +541,7 @@ Female_col <-c("#F564E3")
 Male_col <- c("#619CFF")
 
 # Modify with different labels and font and colors
-MDE_age_gender <- directlabels::direct.label(
+MDE_age_gender <- direct.label(
   MDE_age_gender, 
   list(dl.trans(y = y + 0.38, x = x -0.1), 
        "far.from.others.borders",
@@ -601,8 +601,8 @@ Continuing Data Visualization
 
 ```{r}
 # Saving the graph and finishing the Data Visualization
-save(MDE_age_gender, file =here::here("plots", "MDE_age_gender.rda"))
-png(here::here("plots", "MDE_age_gender.png"))
+save(MDE_age_gender, file = here("plots", "MDE_age_gender.rda"))
+png(here("plots", "MDE_age_gender.png"))
 MDE_age_gender
 while (!is.null(dev.list()))  dev.off()
 
@@ -610,7 +610,7 @@ while (!is.null(dev.list()))  dev.off()
 MDE_race <- percents %>%
   filter(data_type == "Major_Depressive_Episode", 
          subgroup == "Race/Ethnicity") %>%
-  mutate(Demographic = forcats::fct_reorder(Demographic, Percent,
+  mutate(Demographic = fct_reorder(Demographic, Percent,
                                             tail, n = 1, .desc = TRUE,
                                             .na_rm = TRUE)) %>%
   ggplot(aes(x = Year, y = Percent, group = Demographic)) +
@@ -655,8 +655,8 @@ MDE_race <- percents %>%
          subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
     ocs_theme()
 
-save(MDE_race, file =here::here("plots", "MDE_race.rda"))
-png(here::here("plots", "MDE_race.png"))
+save(MDE_race, file = here("plots", "MDE_race.rda"))
+png(here("plots", "MDE_race.png"))
 MDE_race
 while (!is.null(dev.list()))  dev.off()
 
@@ -786,8 +786,8 @@ Treat_total <- percents %>%
 
 Treat_total
 
-save(Treat_total, file =here::here("plots", "Treat_total.rda"))
-png(here::here("plots", "Treat_total.png"))
+save(Treat_total, file = here("plots", "Treat_total.rda"))
+png(here("plots", "Treat_total.png"))
 Treat_total
 while (!is.null(dev.list()))  dev.off()
 ```
@@ -992,7 +992,7 @@ Continuing on following the case study, we need to continue formatting data for 
 ```{r}
 # Continuing data analysis
 chi_squared_11.2a %<>%
-  tibble::column_to_rownames("Demographic")
+  column_to_rownames("Demographic")
 
 chi_squared_11.2a
 
@@ -1112,8 +1112,8 @@ t(chi_squared_11.4a) %>%
 
 
 # While not part of the case study, we wanted to save this new graph, too.
-save(MDE_age_gender_counts, file =here::here("plots", "MDE_age_gender_counts.rda"))
-png(here::here("plots", "MDE_age_gender_counts.png"))
+save(MDE_age_gender_counts, file = here("plots", "MDE_age_gender_counts.rda"))
+png(here("plots", "MDE_age_gender_counts.png"))
 MDE_age_gender_counts
 while (!is.null(dev.list()))  dev.off()
 ```
@@ -1154,9 +1154,9 @@ forward <- ggdraw() +
   )
 
 # Load the previous plots
-load(file = here::here("plots", "MDE_total.rda"))
-load(file = here::here("plots", "MDE_age_gender.rda"))
-load(file = here::here("plots", "MDE_race.rda"))
+load(file = here("plots", "MDE_total.rda"))
+load(file = here("plots", "MDE_age_gender.rda"))
+load(file = here("plots", "MDE_race.rda"))
 
 # Using our MDE_total plot:
 MDE_total_for_mp <- MDE_total +
@@ -1219,7 +1219,7 @@ row_2 <- plot_grid(MDE_age_gender_for_mp,
                    rel_widths = c(1, 0.6))
 
 #Turn them all into a pdf
-png(filename = here::here("img", "mainplot_orig.png"), 
+png(filename = here("img", "mainplot_orig.png"), 
          res = 300, width = 10, height = 10, units = "in")
 plot_grid(title_plots, 
           forward,
@@ -1310,7 +1310,7 @@ forward2 <- ggdraw() +
 row_2 <- plot_grid(MDE_age, MDE_gender,
                    nrow = 1)
 
-png(filename = here::here("img", "mainplot.png"), 
+png(filename = here("img", "mainplot.png"), 
          res = 300, width = 10, height = 10, units = "in")
 plot_grid(title_plots, 
           forward,
@@ -1412,7 +1412,7 @@ write_csv(table11.5b, path = here("data", "wrangled", "table11.5b.csv"))
 # Plotting
 
 # Load Wrangled Data from Previous Section
-load(file = here::here("data", "wrangled", "wrangled_data.rda"))
+load(file = here("data", "wrangled", "wrangled_data.rda"))
 
 #Increase Over Time
 SMDE_total <- percents %>%
@@ -1440,8 +1440,8 @@ SMDE_total <- percents %>%
     scale_color_manual(values = c("blue"))
 
 # Saving our graph as PNG
-save(SMDE_total, file =here::here("plots", "SMDE_total.rda"))
-png(here::here("plots", "SMDE_total.png"))
+save(SMDE_total, file = here("plots", "SMDE_total.rda"))
+png(here("plots", "SMDE_total.png"))
 while (!is.null(dev.list()))  dev.off()
 
 # Comparison of Age and Gender Groups
@@ -1482,15 +1482,15 @@ SMDE_age_gender <- direct.label(
                                 Male_col))
 
 # Saving our graph as PNG
-save(SMDE_age_gender, file =here::here("plots", "SMDE_age_gender.rda"))
-png(here::here("plots", "SMDE_age_gender.png"))
+save(SMDE_age_gender, file = here("plots", "SMDE_age_gender.rda"))
+png(here("plots", "SMDE_age_gender.png"))
 while (!is.null(dev.list()))  dev.off()
 
 # Comparison of Racial/Ethnic Groups
 SMDE_race <- percents %>%
   filter(data_type == "Treatment_for_Severe_Major_Depressive_Episode", 
          subgroup == "Race/Ethnicity") %>%
-  mutate(Demographic = forcats::fct_reorder(Demographic, Percent,
+  mutate(Demographic = fct_reorder(Demographic, Percent,
                                             tail, n = 1, .desc = TRUE,
                                             .na_rm = TRUE)) %>%
   ggplot(aes(x = Year, y = Percent, group = Demographic)) +
@@ -1507,8 +1507,8 @@ SMDE_race <- percents %>%
          subtitle = "By Demographic Characteristics, Percentages, 2004-2018") +
     ocs_theme()
 
-save(SMDE_race, file =here::here("plots", "SMDE_race.rda"))
-png(here::here("plots", "SMDE_race.png"))
+save(SMDE_race, file = here("plots", "SMDE_race.rda"))
+png(here("plots", "SMDE_race.png"))
 while (!is.null(dev.list()))  dev.off()
 
 SMDE_total
@@ -1552,7 +1552,7 @@ We can apply this question to both Major Depressive Episode data and Major Depre
 # Our Own Question
 
 # Load in data
-load(file = here::here("data", "wrangled", "wrangled_data.rda"))
+load(file = here("data", "wrangled", "wrangled_data.rda"))
 
 # Finding summary for largest change
 max_change <- function(df, subgroup, data_type, column) {
@@ -1649,4 +1649,3 @@ glimpse(pct_TMDES)
 ```
 
 Surprisingly, this does not change the results for the maximum values for neither the change nor the strictly maximum value. However, there is an alteration in the patterns here that we can see easily. While the maximums may not have changed, the minimums have. The minimum values for each is no longer limited to the age group of 12 - 13 year olds. Here, we can see that a change has been made, and using `percents` does actually give us a better representation of the data compared to `counts`. It just so happens that both datasets produced the same age groups for maximum change and maximum value.
-
