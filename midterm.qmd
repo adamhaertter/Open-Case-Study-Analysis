@@ -1,6 +1,8 @@
 ---
 title: "Data Science 1 - Midterm Project"
 author: "Adam Haertter & Brennan Mulligan"
+execute:
+  warning: false
 format: pdf
 ---
 
@@ -660,6 +662,8 @@ png(here::here("plots", "MDE_race.png"))
 MDE_race
 while (!is.null(dev.list()))  dev.off()
 
+MDE_race
+
 # Now let’s take a look at how the overall rate of youths reporting having a
 # major depressive episode (MDE) with severe impairment has changed over time.
 ```
@@ -784,12 +788,12 @@ Treat_total <- percents %>%
     theme(legend.position = "none") +
     scale_color_manual(values = c("blue"))
 
-Treat_total
-
 save(Treat_total, file =here::here("plots", "Treat_total.rda"))
 png(here::here("plots", "Treat_total.png"))
 Treat_total
 while (!is.null(dev.list()))  dev.off()
+
+Treat_total
 ```
 
 #### Question Opportunity
@@ -838,7 +842,7 @@ Race_treat <- percents %>%
   filter(subgroup == "Race/Ethnicity") %>%
   mutate(Demographic = 
            fct_reorder(Demographic, Percent, 
-                       tail, n = 1, .desc = TRUE)) %>%
+                       tail, n = 1, .desc = TRUE, .na_rm = TRUE)) %>%
   ggplot(aes(x = Year, y = Percent, color = Demographic)) +
     geom_line(size = 1) +
     facet_wrap( ~ subgroup) +
@@ -856,7 +860,7 @@ Race_treat <- percents %>%
   filter(subgroup == "Race/Ethnicity") %>%
   mutate(Demographic = 
            fct_reorder(Demographic, Percent, 
-                       tail, n = 1, .desc = TRUE)) %>%
+                       tail, n = 1, .desc = TRUE, .na_rm = TRUE)) %>%
   ggplot(aes(x = Year, y = Percent, color = Demographic)) +
     geom_line(size = 1) +
     facet_wrap( ~ subgroup) +
@@ -936,6 +940,8 @@ age_outcomes <-percents %>%
   theme(legend.title = element_blank(),
         legend.position = "bottom") +
     guides(color = FALSE)
+
+age_outcomes
 ```
 
 #### Question Opportunity
@@ -959,6 +965,8 @@ race_outcomes <- percents %>%
   theme(legend.title = element_blank(),
         legend.position = "bottom") +
     guides(color = FALSE)
+
+race_outcomes
 ```
 
 ### Data Analysis
@@ -1231,6 +1239,8 @@ plot_grid(title_plots,
 while (!is.null(dev.list()))  dev.off()
 ```
 
+#### ![](img/mainplot_orig.png)
+
 #### Question Opportunity
 
 Try to come up with the code for these plots on your own before you reveal it. We can use our ocs_theme() for these plots to make all the plots look similar.
@@ -1321,6 +1331,8 @@ plot_grid(title_plots,
           rel_heights = c(0.1, 0.2, 1, 0.1, 1))
 while (!is.null(dev.list()))  dev.off()
 ```
+
+## ![](img/mainplot.png)
 
 ## Homework Questions
 
@@ -1494,7 +1506,7 @@ SMDE_race <- percents %>%
                                             tail, n = 1, .desc = TRUE,
                                             .na_rm = TRUE)) %>%
   ggplot(aes(x = Year, y = Percent, group = Demographic)) +
-    geom_rect(xmin = 2011, xmax = Inf,   
+    geom_rect(xmin = 2009, xmax = Inf,   
               ymin = -Inf, ymax = Inf,   
               fill = "light gray") +
     geom_line(aes(color = Demographic), size = 1) +
@@ -1649,4 +1661,3 @@ glimpse(pct_TMDES)
 ```
 
 Surprisingly, this does not change the results for the maximum values for neither the change nor the strictly maximum value. However, there is an alteration in the patterns here that we can see easily. While the maximums may not have changed, the minimums have. The minimum values for each is no longer limited to the age group of 12 - 13 year olds. Here, we can see that a change has been made, and using `percents` does actually give us a better representation of the data compared to `counts`. It just so happens that both datasets produced the same age groups for maximum change and maximum value.
-
